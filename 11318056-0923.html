@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設計師個人名片 | Personal Card</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(at 20% 20%, rgba(147, 51, 234, 0.12) 0px, transparent 50%),
+                           radial-gradient(at 80% 80%, rgba(126, 34, 206, 0.10) 0px, transparent 50%),
+                           #f5f3ff;
+            --card-bg: #ffffff;
+            --card-border: rgba(147, 51, 234, 0.15);
+            --card-shadow: 0 20px 50px -10px rgba(139, 92, 246, 0.18);
+            --card-shadow-hover: 0 30px 60px -12px rgba(147, 51, 234, 0.28);
+            --text-title: #0f172a;
+            --text-body: #64748b;
+            --social-bg: #f1f5f9;
+            --social-hover-bg: #f3e8ff;
+            --social-text: #475569;
+            --social-hover-text: #7e22ce;
+            --modal-bg: #ffffff;
+            --modal-item-bg: #f8fafc;
+            --modal-item-border: #f1f5f9;
+            --ripple-color: rgba(255, 255, 255, 0.45);
+        }
+
+        body.dark-mode {
+            --bg-gradient: radial-gradient(at 20% 20%, rgba(147, 51, 234, 0.25) 0px, transparent 50%),
+                           radial-gradient(at 80% 80%, rgba(126, 34, 206, 0.20) 0px, transparent 50%),
+                           #0b0714;
+            --card-bg: #130d24;
+            --card-border: rgba(168, 85, 247, 0.3);
+            --card-shadow: 0 20px 50px -10px rgba(147, 51, 234, 0.35);
+            --card-shadow-hover: 0 30px 60px -12px rgba(168, 85, 247, 0.5);
+            --text-title: #f8fafc;
+            --text-body: #94a3b8;
+            --social-bg: #1e1635;
+            --social-hover-bg: #3b0764;
+            --social-text: #cbd5e1;
+            --social-hover-text: #c084fc;
+            --modal-bg: #130d24;
+            --modal-item-bg: #1a1230;
+            --modal-item-border: #2e1d52;
+            --ripple-color: rgba(216, 180, 254, 0.4);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        /* 3-Second Cubic Elastic Hover Transition for Card */
+        .card-glow {
+            background-color: var(--card-bg);
+            box-shadow: var(--card-shadow), 0 0 0 1px var(--card-border);
+            transition: transform 3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                        box-shadow 3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        background-color 0.4s ease;
+        }
+
+        .card-glow:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--card-shadow-hover), 0 0 0 1.5px rgba(168, 85, 247, 0.8);
+        }
+
+        /* Dynamic Text & Social Button Themes */
+        .theme-title { color: var(--text-title); transition: color 0.4s ease; }
+        .theme-body { color: var(--text-body); transition: color 0.4s ease; }
+
+        .theme-toggle-btn {
+            background-color: var(--social-bg);
+            color: var(--social-text);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .theme-toggle-btn:hover {
+            background-color: var(--social-hover-bg);
+            color: var(--social-hover-text);
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        .social-btn {
+            background-color: var(--social-bg);
+            color: var(--social-text);
+            transition: all 0.3s ease;
+        }
+        .social-btn:hover {
+            background-color: var(--social-hover-bg);
+            color: var(--social-hover-text);
+        }
+
+        .modal-card { background-color: var(--modal-bg); }
+        .modal-item { background-color: var(--modal-item-bg); border-color: var(--modal-item-border); }
+
+        .avatar-ring {
+            background: linear-gradient(135deg, #7e22ce, #c084fc);
+            box-shadow: 0 8px 24px -4px rgba(147, 51, 234, 0.4);
+        }
+
+        /* Ripple Container & Animation (1 Second Duration) */
+        .ripple-btn {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .ripple-btn .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background-color: var(--ripple-color);
+            transform: scale(0);
+            animation: rippleAnimation 1s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes rippleAnimation {
+            0% {
+                transform: scale(0);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, #7e22ce 0%, #581c87 100%);
+            transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+        }
+        .btn-purple:hover {
+            background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
+            box-shadow: 0 10px 25px -5px rgba(126, 34, 206, 0.5);
+        }
+
+        .btn-secondary {
+            background-color: var(--social-bg);
+            color: var(--text-title);
+            border: 1.5px solid var(--card-border);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: var(--social-hover-bg);
+            color: var(--social-hover-text);
+        }
+
+        /* Modal Animations */
+        .modal-fade { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .modal-card-anim { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4 min-h-screen antialiased selection:bg-purple-500 selection:text-white">
+
+    <!-- Main Designer Card -->
+    <main class="w-full max-w-sm rounded-3xl p-8 card-glow text-center relative z-10 my-auto">
+        
+        <!-- Day/Night Theme Switcher Button -->
+        <button id="themeToggleBtn" class="ripple-btn absolute top-6 right-6 w-9 h-9 rounded-full theme-toggle-btn flex items-center justify-center text-sm shadow-sm" title="切換日夜主題">
+            <i id="themeIcon" class="fa-solid fa-moon pointer-events-none"></i>
+        </button>
+
+        <!-- Status Badge -->
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100/70 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-semibold tracking-wide mb-6">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            承接設計專案中
+        </div>
+
+        <!-- Avatar Placeholder -->
+        <div class="relative w-28 h-28 mx-auto mb-6">
+            <div class="w-full h-full rounded-full avatar-ring p-1">
+                <div class="w-full h-full rounded-full overflow-hidden relative group bg-purple-950">
+                    <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=300&q=80" 
+                         alt="Cat Designer Avatar" 
+                         onerror="this.src='https://placehold.co/300x300/581c87/ffffff?text=Cat'"
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <span class="absolute inset-0 bg-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></span>
+                </div>
+            </div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-md text-white text-xs">
+                <i class="fa-solid fa-cat"></i>
+            </div>
+        </div>
+
+        <!-- Name & Title -->
+        <h1 class="text-2xl font-black theme-title tracking-tight mb-1">
+            彭小英 <span class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest block mt-0.5">Yating Lin</span>
+        </h1>
+        <p class="text-sm font-semibold text-purple-700 dark:text-purple-300 mb-3 tracking-wide">
+            資深 UI/UX 與視覺設計師
+        </p>
+
+        <!-- Direct Email Display Badge on Card -->
+        <a href="mailto:a0903295941@gmail.com" class="ripple-btn inline-flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl border modal-item text-xs font-medium theme-title hover:text-purple-600 dark:hover:text-purple-400 transition-all mb-4 shadow-sm">
+            <i class="fa-solid fa-envelope text-purple-600 dark:text-purple-400 text-xs"></i>
+            <span>a0903295941@gmail.com</span>
+        </a>
+
+        <!-- Description -->
+        <p class="text-xs theme-body leading-relaxed mb-6 px-2">
+            專注於打造直覺、極簡且具備強烈視覺對比的數位產品與品牌體驗。
+        </p>
+
+        <!-- Social Icons -->
+        <div class="flex justify-center gap-3 mb-8">
+            <a href="#" class="ripple-btn w-9 h-9 rounded-full social-btn flex items-center justify-center text-sm" title="Dribbble">
+                <i class="fa-brands fa-dribbble pointer-events-none"></i>
+            </a>
+            <a href="#" class="ripple-btn w-9 h-9 rounded-full social-btn flex items-center justify-center text-sm" title="Behance">
+                <i class="fa-brands fa-behance pointer-events-none"></i>
+            </a>
+            <a href="#" class="ripple-btn w-9 h-9 rounded-full social-btn flex items-center justify-center text-sm" title="LinkedIn">
+                <i class="fa-brands fa-linkedin-in pointer-events-none"></i>
+            </a>
+            <a href="#" class="ripple-btn w-9 h-9 rounded-full social-btn flex items-center justify-center text-sm" title="GitHub">
+                <i class="fa-brands fa-github pointer-events-none"></i>
+            </a>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2.5">
+            <button id="contactBtn" class="ripple-btn w-full py-3.5 px-6 text-sm font-bold text-white rounded-2xl btn-purple flex items-center justify-center gap-2 shadow-lg shadow-purple-900/20">
+                <i class="fa-solid fa-paper-plane text-xs pointer-events-none"></i>
+                <span class="pointer-events-none">聯繫我</span>
+            </button>
+            <button id="portfolioBtn" class="ripple-btn w-full py-3 px-6 text-sm font-bold rounded-2xl btn-secondary flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrow-up-right-from-square text-xs pointer-events-none"></i>
+                <span class="pointer-events-none">查看作品集</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal Backdrop & Contact Form Window -->
+    <div id="contactModal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="rounded-3xl p-6 w-full max-w-sm text-center relative card-glow modal-card modal-card-anim">
+            
+            <!-- Close Button -->
+            <button id="closeModal" class="ripple-btn absolute top-4 right-4 w-8 h-8 rounded-full social-btn flex items-center justify-center">
+                <i class="fa-solid fa-xmark pointer-events-none"></i>
+            </button>
+
+            <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-paper-plane"></i>
+            </div>
+
+            <h2 class="text-xl font-bold theme-title mb-1">聯繫彭小英</h2>
+            <p class="text-xs theme-body mb-5">請留下您的訊息，我將儘快與您回覆！</p>
+
+            <!-- Contact Form -->
+            <form id="contactForm" class="space-y-3 text-left mb-5" onsubmit="event.preventDefault();">
+                <div>
+                    <label class="block text-[11px] font-semibold theme-body mb-1 uppercase">您的姓名</label>
+                    <input type="text" required placeholder="例如：王小明" class="w-full text-xs px-3.5 py-2.5 rounded-xl border modal-item theme-title focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold theme-body mb-1 uppercase">電子郵件</label>
+                    <input type="email" required id="emailInput" placeholder="a0903295941@gmail.com" class="w-full text-xs px-3.5 py-2.5 rounded-xl border modal-item theme-title focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold theme-body mb-1 uppercase">專案需求 / 訊息</label>
+                    <textarea rows="3" required placeholder="請簡述您的需求或合作構想..." class="w-full text-xs px-3.5 py-2.5 rounded-xl border modal-item theme-title focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all resize-none"></textarea>
+                </div>
+
+                <!-- Fast Info Bar -->
+                <div class="p-3 modal-item rounded-xl border flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <i class="fa-solid fa-envelope text-purple-600 dark:text-purple-400"></i>
+                        <span class="truncate theme-title font-semibold" id="emailText">a0903295941@gmail.com</span>
+                    </div>
+                    <button type="button" id="copyEmailBtn" class="ripple-btn shrink-0 text-[11px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/60 hover:bg-purple-200 dark:hover:bg-purple-800 px-2.5 py-1 rounded-lg transition-colors">
+                        複製 Email
+                    </button>
+                </div>
+
+                <button type="submit" id="sendFormBtn" class="ripple-btn w-full py-3 text-sm font-bold text-white rounded-xl btn-purple mt-2 shadow-md">
+                    發送訊息
+                </button>
+            </form>
+
+            <button id="modalConfirmBtn" class="ripple-btn w-full py-2.5 text-xs font-semibold rounded-xl btn-secondary">
+                關閉彈窗
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check text-purple-400"></i>
+        <span id="toastMsg">已複製 Email 到剪貼簿！</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggleBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+            const contactBtn = document.getElementById('contactBtn');
+            const portfolioBtn = document.getElementById('portfolioBtn');
+            const contactModal = document.getElementById('contactModal');
+            const closeModal = document.getElementById('closeModal');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            const contactForm = document.getElementById('contactForm');
+            const copyEmailBtn = document.getElementById('copyEmailBtn');
+            const emailText = document.getElementById('emailText').innerText;
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+
+            // 1-Second Click Ripple Effect Handler
+            document.querySelectorAll('.ripple-btn').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    const rect = this.getBoundingClientRect();
+                    const circle = document.createElement('span');
+                    const diameter = Math.max(rect.width, rect.height);
+                    const radius = diameter / 2;
+
+                    circle.style.width = circle.style.height = `${diameter}px`;
+                    circle.style.left = `${e.clientX - rect.left - radius}px`;
+                    circle.style.top = `${e.clientY - rect.top - radius}px`;
+                    circle.classList.add('ripple-effect');
+
+                    const existingRipple = this.querySelector('.ripple-effect');
+                    if (existingRipple) {
+                        existingRipple.remove();
+                    }
+
+                    this.appendChild(circle);
+
+                    // Remove element after 1-second animation finishes
+                    setTimeout(() => {
+                        circle.remove();
+                    }, 1000);
+                });
+            });
+
+            // Theme Switcher Logic
+            let isDark = false;
+            themeToggleBtn.addEventListener('click', () => {
+                isDark = !isDark;
+                if (isDark) {
+                    document.body.classList.add('dark-mode');
+                    themeIcon.classList.remove('fa-moon');
+                    themeIcon.classList.add('fa-sun');
+                    showToast('已切換至暗黑霓虹主題');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    themeIcon.classList.remove('fa-sun');
+                    themeIcon.classList.add('fa-moon');
+                    showToast('已切換至極簡淺色主題');
+                }
+            });
+
+            // Open Modal
+            function openModal() {
+                contactModal.classList.remove('hidden');
+                contactModal.classList.add('modal-fade');
+            }
+
+            // Close Modal
+            function hideModal() {
+                contactModal.classList.add('hidden');
+            }
+
+            // Show Toast Notification
+            function showToast(message) {
+                toastMsg.innerText = message;
+                toast.classList.remove('opacity-0', 'pointer-events-none');
+                toast.classList.add('opacity-100');
+
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100');
+                    toast.classList.add('opacity-0', 'pointer-events-none');
+                }, 2500);
+            }
+
+            // Contact Form Submission
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                showToast('訊息已順利送出，謝謝您的聯繫！');
+                contactForm.reset();
+                setTimeout(hideModal, 1200);
+            });
+
+            // Event Listeners for Modal controls
+            contactBtn.addEventListener('click', openModal);
+            closeModal.addEventListener('click', hideModal);
+            modalConfirmBtn.addEventListener('click', hideModal);
+
+            // Close modal when clicking on overlay background
+            contactModal.addEventListener('click', (e) => {
+                if (e.target === contactModal) {
+                    hideModal();
+                }
+            });
+
+            // Close modal with ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !contactModal.classList.contains('hidden')) {
+                    hideModal();
+                }
+            });
+
+            // Portfolio Button Action
+            portfolioBtn.addEventListener('click', () => {
+                showToast('正在前往作品集頁面...');
+            });
+
+            // Copy Email Handler
+            copyEmailBtn.addEventListener('click', () => {
+                const tempInput = document.createElement('input');
+                tempInput.value = emailText;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('已複製 Email 到剪貼簿！');
+                } catch (err) {
+                    showToast('複製失敗，請手動複製');
+                }
+                document.body.removeChild(tempInput);
+            });
+        });
+    </script>
+</body>
+</html>
